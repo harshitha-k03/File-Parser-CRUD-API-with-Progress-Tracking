@@ -1,9 +1,8 @@
- # File Parser CRUD API
+# File Parser CRUD API
 
 A FastAPI application for uploading and parsing CSV/Excel files with SQLite database storage.
 
 ## Features
-
 - Upload CSV and Excel files via REST API
 - Automatic file parsing and storage in SQLite database
 - List all uploaded files with pagination
@@ -13,134 +12,118 @@ A FastAPI application for uploading and parsing CSV/Excel files with SQLite data
 - Background processing for file parsing
 
 ## Requirements
-
 - Python 3.8+
 - All dependencies listed in `requirements.txt`
 
-## Installation
-
-1. Clone the repository:
+## Installation & Setup
 ```bash
-git clone <repository-url>
-cd file_parser_crud
-```
-
-2. Create a virtual environment:
-```bash
-python -m venv venv
-```
-
-3. Activate the virtual environment:
-- On Windows:
-```bash
-venv\Scripts\activate
-```
-- On macOS/Linux:
-```bash
-source venv/bin/activate
-```
-
-4. Install dependencies:
-```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Start the server
+uvicorn file_parser_crud.main:app --reload --host 0.0.0.0 --port 8000
 ```
-
-## Running the Application
-
-1. Start the FastAPI server:
-```bash
-uvicorn file_parser_crud.main:app --reload
-```
-
-2. The API will be available at:
-- Base URL: `http://localhost:8000`
-- API Documentation: `http://localhost:8000/docs`
-- Alternative API Documentation: `http://localhost:8000/redoc`
 
 ## API Endpoints
-
-### File Operations
-- `POST /upload` - Upload a CSV/Excel file
-- `GET /files` - List all uploaded files
-- `GET /files/{file_id}` - Get file details
-- `DELETE /files/{file_id}` - Delete a file and its data
-
-### Data Operations
-- `GET /files/{file_id}/rows` - Get parsed rows with pagination
-- `GET /files/{file_id}/progress` - Check parsing progress
-
-### Health Check
-- `GET /health` - Check API health status
-
-## Usage Examples
-
-### Upload a file using curl:
-```bash
-curl -X POST "http://localhost:8000/upload" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@your_file.csv"
-```
-
-### List files:
-```bash
-curl "http://localhost:8000/files"
-```
-
-### Get file details:
-```bash
-curl "http://localhost:8000/files/1"
-```
-
-### Get file rows with pagination:
-```bash
-curl "http://localhost:8000/files/1/rows?skip=0&limit=10"
-```
-
-### Check parsing progress:
-```bash
-curl "http://localhost:8000/files/1/progress"
-```
-
-### Delete a file:
-```bash
-curl -X DELETE "http://localhost:8000/files/1"
-```
-
-## File Structure
-
-```
-file_parser_crud/
-├── file_parser_crud/
-│   ├── __init__.py
-│   ├── main.py          # FastAPI application
-│   ├── database.py      # Database setup and connection
-│   ├── models.py        # SQLAlchemy models
-│   ├── schemas.py       # Pydantic schemas
-│   ├── crud.py          # Database operations
-│   └── parser.py        # File parsing logic
-├── uploads/             # Directory for uploaded files
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
-```
+- **POST /files** - Upload file
+- **GET /files** - List files
+- **GET /files/{id}** - Get file details
+- **GET /files/{id}/rows** - Get parsed rows
+- **GET /files/{id}/progress** - Check progress
+- **DELETE /files/{id}** - Delete file
+- **GET /health** - Health check
 
 ## Database Schema
 
-The application uses SQLite with the following tables:
-- `uploaded_files`: Stores metadata about uploaded files
-- `file_rows`: Stores parsed data from files
+### uploaded_files Table
+```sql
+CREATE TABLE uploaded_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INTEGER NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'pending',
+    total_rows INTEGER DEFAULT 0,
+    processed_rows INTEGER DEFAULT 0,
+    error_message TEXT
+);
+```
 
-## Error Handling
+### file_rows Table
+```sql
+CREATE TABLE file_rows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_id INTEGER NOT NULL,
+    row_number INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    FOREIGN KEY (file_id) REFERENCES uploaded_files(id)
+);
+```
 
-The API includes comprehensive error handling:
-- File type validation
-- File size limits (handled by FastAPI)
-- Database transaction rollback on errors
-- Detailed error messages in responses
+### Database Schema Diagram
+```mermaid
+erDiagram
+    uploaded_files ||--o{ file_rows : contains
+    
+    uploaded_files {
+        int id PK
+        string filename
+        string original_filename
+        string file_path
+        int file_size
+        string file_type
+        datetime upload_date
+        string status
+        int total_rows
+        int processed_rows
+        string error_message
+    }
+    
+    file_rows {
+        int id PK
+        int file_id FK
+        int row_number
+        string data
+    }
+```
+
+## Screenshots & Documentation
+![alt text](image-1.png)
+
+![alt text](image-2.png)
+### API Documentation
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
+### Sample Usage
+```bash
+# Upload a file
+curl -X POST "http://localhost:8000/files" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@sample_data.csv"
+
+# List files
+curl "http://localhost:8000/files"
+
+# Get file details
+curl "http://localhost:8000/files/1"
+```
+
+## Quick Start
+1. Install dependencies: `pip install -r requirements.txt`
+2. Start server: `uvicorn file_parser_crud.main:app --reload`
+3. Access API at `http://localhost:8000`
+
+## Database Schema Images
+- **Schema Diagram**: Available in the mermaid diagram above
+- **Live Documentation**: Accessible via Swagger UI at `/docs`
+- **API Testing**: Use the interactive documentation
 
 ## Development
-
-To run tests or make modifications:
-1. Ensure the virtual environment is activated
+1. Ensure virtual environment is activated
 2. Make changes to the code
-3. Restart the server if not using `--reload`
-4. Check the interactive API documentation at `http://localhost:8000/docs`
+3. Restart server if not using `--reload`
+4. Check docs at `http://localhost:8000/docs`
