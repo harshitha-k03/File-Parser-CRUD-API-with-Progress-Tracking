@@ -91,9 +91,11 @@ erDiagram
 ```
 
 ## Screenshots & Documentation
-![alt text](image-1.png)
+<img width="1920" height="1080" alt="Screenshot (156)" src="https://github.com/user-attachments/assets/8bd9dbf0-799d-474b-83c2-d323fb1ebd24" />
 
-![alt text](image-2.png)
+<img width="1920" height="1080" alt="Screenshot (157)" src="https://github.com/user-attachments/assets/be9746d1-bfb8-4243-9f67-9873c3ff9824" />
+
+
 ### API Documentation
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
